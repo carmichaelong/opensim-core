@@ -48,7 +48,6 @@
 #include "SimTKcommon/internal/SystemGuts.h"
 
 #include "Model.h"
-#include "ModelVisualizer.h"
 
 #include "Muscle.h"
 #include "Ligament.h"
@@ -125,14 +124,6 @@ Model::Model(const string &aFileName, const bool finalize) :
 
 //_____________________________________________________________________________
 /**
- * Destructor.
- */
-Model::~Model()
-{
-    delete _modelViz;
-}
-//_____________________________________________________________________________
-/**
  * Override default implementation by object to intercept and fix the XML node
  * underneath the model to match current version
  */
@@ -184,8 +175,8 @@ void Model::updateFromXMLNode(SimTK::Xml::Element& aNode, int versionNumber)
                     SimTK::String parent_name = "ground";
                     parentBodyElement->getValueAs<SimTK::String>(parent_name);
                     //cout << "Processing Joint " << concreteJointNode->getElementTag() << "Parent body " << parent_name << std::endl;
-                    XMLDocument::addConnector(*concreteJointNode, "Connector_PhysicalFrame_", "parent_body", parent_name);
-                    XMLDocument::addConnector(*concreteJointNode, "Connector_PhysicalFrame_", "child_body", body_name);
+                    XMLDocument::addConnector(*concreteJointNode, "Connector_PhysicalFrame_", "parent_frame", parent_name);
+                    XMLDocument::addConnector(*concreteJointNode, "Connector_PhysicalFrame_", "child_frame", body_name);
                     concreteJointNode->eraseNode(parentBodyElement);
                     jointObjects.insertNodeAfter(jointObjects.node_end(), *concreteJointNode);
                     detach_joint_node.clearOrphan();
@@ -211,8 +202,6 @@ void Model::setNull()
 {
     _useVisualizer = false;
     _allControllersEnabled = true;
-
-    _modelViz = NULL;
 
     _validationLog="";
 
@@ -286,7 +275,7 @@ void Model::buildSystem() {
     // Create a Visualizer for this Model if one has been requested. This adds
     // necessary elements to the System. Doesn't initialize geometry yet.
     if (getUseVisualizer())
-        _modelViz = new ModelVisualizer(*this);
+        _modelViz.reset(new ModelVisualizer(*this));
 }
 
 
@@ -455,11 +444,6 @@ bool Model::isValidSystem() const
  */
 void Model::createMultibodySystem()
 {
-    if(_system) // if system was built previously start fresh
-    {
-        // Delete the old system.
-        delete _modelViz;
-    }
 
     // We must reset these unique_ptr's before deleting the System (through
     // reset()), since deleting the System puts a null handle pointer inside
@@ -505,8 +489,7 @@ void Model::extendFinalizeFromProperties()
         else{
             _multibodyTree.addJointType(
                 availablJointTypes[i]->getConcreteClassName(),
-                availablJointTypes[i]->numCoordinates(),
-                (availablJointTypes[i]->getConcreteClassName() == "BallJoint"));
+                availablJointTypes[i]->numCoordinates(), false);
         }
     }
 
@@ -549,36 +532,47 @@ void Model::extendFinalizeFromProperties()
         }
     }
 
+    FrameSet& fs = updFrameSet();
+    int nf = fs.getSize();
+    for (int i = 0; i<nf; ++i) {
+        addComponent(&fs[i]);
+    }
 
     // Complete multibody tree description by indicating how "bodies" are
     // connected by joints.
     if(getJointSet().getSize()>0)
     {
         JointSet &js = updJointSet();
+
         int nj = js.getSize();
         for (int i = 0; i<nj; ++i){
             std::string name = js[i].getName();
             IO::TrimWhitespace(name);
 
-            if ((name.empty()) || (name == "")){
+            if (name.empty()){
                 name = js[i].getParentFrameName() + "_to_" + js[i].getChildFrameName();
             }
 
+            // TODO Remove this when subcomponents can be iterated upon construction.
+            // We are only calling finalizeFromProperties so that any offset frames
+            // belonging to the Joint are marked as subcomponents and can be found.
+            js[i].finalizeFromProperties();
             addComponent(&js[i]);
+            // TODO Remove this when subcomponents can be iterated upon construction.
+            // Currently we need to take a first pass at connecting the joints in 
+            // order to find the frames that they attach to and their underlying bodies.
+            js[i].connect(*this);
+
             // Use joints to define the underlying multibody tree
             _multibodyTree.addJoint(name,
                 js[i].getConcreteClassName(),
-                js[i].getParentFrameName(),
-                js[i].getChildFrameName(),
+                // Multibody tree builder only cares about bodies not intermediate
+                // frames that joints actually connect to.
+                js[i].getParentFrame().findBaseFrame().getName(),
+                js[i].getChildFrame().findBaseFrame().getName(),
                 false,
                 &js[i]);
         }
-    }
-
-    FrameSet& fs = updFrameSet();
-    int nf = fs.getSize();
-    for (int i = 0; i<nf; ++i){
-            addComponent(&fs[i]);
     }
 
     if(getConstraintSet().getSize()>0)
@@ -711,8 +705,8 @@ void Model::extendConnectToModel(Model &model)
 
             std::string jname = "free_" + child->getName();
             SimTK::Vec3 zeroVec(0.0);
-            Joint* free = new FreeJoint(jname,
-                               *ground, zeroVec, zeroVec, *child, zeroVec, zeroVec);
+            Joint* free = new FreeJoint(jname, ground->getName(), child->getName());
+            free->finalizeFromProperties();
             addJoint(free);
         }
         else{
@@ -754,15 +748,15 @@ void Model::extendConnectToModel(Model &model)
 
         if (joint.getConcreteClassName() == "WeldJoint") {
             WeldConstraint* weld = new WeldConstraint( joint.getName()+"_Loop",
-                parent, joint.getParentTransform(),
-                child, joint.getChildTransform());
+                parent, joint.getParentFrame().findTransformInBaseFrame(),
+                child, joint.getChildFrame().findTransformInBaseFrame());
             addConstraint(weld);
 
         }
         else if (joint.getConcreteClassName() == "BallJoint") {
             PointConstraint* point = new PointConstraint(
-                parent, joint.getParentTransform().p(),
-                child,  joint.getChildTransform().p()   );
+                parent, joint.getParentFrame().findTransformInBaseFrame().p(),
+                child, joint.getChildFrame().findTransformInBaseFrame().p());
             point->setName(joint.getName() + "_Loop");
             addConstraint(point);
         }
@@ -2146,3 +2140,4 @@ void Model::constructOutputs()
        std::bind(&Model::calcMassCenterAcceleration,this,std::placeholders::_1), SimTK::Stage::Acceleration);
     
 }
+
