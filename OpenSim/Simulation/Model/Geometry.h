@@ -44,7 +44,7 @@ class ModelComponent;
  Geometry items to represent itself in graphics window. The relation between
  a ModelComponent and specific Geometry utilizes the Component mechanism, as
  the specific pieces of geometry are treated as subcomponents. The placement
- of the Geometry in 3D spae is computed from the Frame that the Geometry is
+ of the Geometry in 3D space is computed from the Frame that the Geometry is
  "Connected" to.
 
  Geometry (and all its subclasses) serve as the set of higher level primitives
@@ -65,7 +65,7 @@ public:
     // Scale factors
     OpenSim_DECLARE_PROPERTY(scale_factors, SimTK::Vec3,
         "Scale factors in X, Y, Z directions respectively.");
-    // Default display properiies e.g. Representation, color, texture, etc.
+    // Default display properties e.g. Representation, color, texture, etc.
     OpenSim_DECLARE_UNNAMED_PROPERTY(Appearance,
         "Default appearance for this Geometry");
     //--------------------------------------------------------------------------
@@ -92,9 +92,9 @@ public:
     virtual ~Geometry() {}
     /** Interface methods to handle the Frame which the Geometry is attached to.
     **/
-    /** Set the name of the Frame of attachment **/
+    /** %Set the name of the Frame of attachment **/
     void setFrameName(const std::string& name);
-    /** Set the Frame of attachment **/
+    /** %Set the Frame of attachment **/
     void setFrame(const Frame& frame);
     /** Return a reference to the name of the Frame to which
     this Geometry is attached (using a Connector). **/
@@ -120,7 +120,7 @@ public:
             decoration.setOpacity(get_Appearance().get_opacity());
             if (get_Appearance().get_visible())
                 decoration.setRepresentation(
-                    (SimTK::DecorativeGeometry::Representation)
+                    (VisualRepresentation)
                     get_Appearance().get_representation());
             else
                 decoration.setRepresentation(SimTK::DecorativeGeometry::Hide);
@@ -144,11 +144,11 @@ public:
     };
 
     /// Convenient access to set Appearance/representation
-    void setRepresentation(DecorativeGeometry::Representation rep) { 
+    void setRepresentation(VisualRepresentation rep) { 
         upd_Appearance().set_representation(rep); 
     };
     /// Convenient access to get Appearance/representation
-    DecorativeGeometry::Representation getRepresentation() { return
+    VisualRepresentation getRepresentation() { return
         get_Appearance().get_representation(); 
     };
 
@@ -214,7 +214,7 @@ public:
         rPoint1 = get_start_point();
         rPoint2 = get_end_point();
     }
-    /// Set end points from passed in arguments
+    /// %Set end points from passed in arguments
     void setPoints(SimTK::Vec3& aPoint1, SimTK::Vec3& aPoint2)
     {
         upd_start_point() = aPoint1;
@@ -280,7 +280,7 @@ private:
 
 
 /**
- * Utility class used to abstract anayltic geometry. This will need to be 
+ * Utility class used to abstract analytic geometry. This will need to be 
  * revisited when wrapping is re-done to handle quadrants or analytic shapes
  * that were supported in earlier releases before 4.0. 
  *
