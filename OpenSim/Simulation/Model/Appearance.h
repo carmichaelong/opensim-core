@@ -37,8 +37,11 @@ class Model;
 VisualRepresentation is the OpenSim name used across the OpenSim API, it maps to
 SimTK::DecorativeGeometry::Representation.
 */
+#ifndef SWIG
 using VisualRepresentation = SimTK::DecorativeGeometry::Representation;
-
+#else
+typedef VisualRepresentation SimTK::DecorativeGeometry::Representation;
+#endif
 /**
 SurfaceAppearance class holds the appearance properties of a piece of Geometry 
 displayed in the OpenSim visualizer or GUI as a surface. The properties in this 
@@ -147,10 +150,10 @@ public:
     }
     virtual ~Appearance() {};
 
-    VisualRepresentation get_representation() const { 
+    OpenSim::VisualRepresentation get_representation() const { 
         return (VisualRepresentation)get_surface_appearance().get_representation(); }
 
-    void set_representation(VisualRepresentation& rep) { 
+    void set_representation(const VisualRepresentation& rep) { 
         upd_surface_appearance().set_representation(rep); }
 
 protected:

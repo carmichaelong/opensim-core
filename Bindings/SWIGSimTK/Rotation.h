@@ -303,8 +303,8 @@ public:
     /// Conversion from Rotation to its base class Mat33.
     /// Note: asMat33 is more efficient than toMat33() (no copy), but you have to know the internal layout.
     //@{
-    const Mat33&  asMat33() const  { return *static_cast<const Mat33*>(this); }
-    Mat33         toMat33() const  { return asMat33(); }
+    const Mat<3, 3, P>&  asMat33() const  { return *static_cast<const Mat33*>(this); }
+    Mat<3, 3, P>         toMat33() const  { return asMat33(); }
     //@}
 #ifndef SWIG
     /// The column and row unit vector types do not necessarily have unit spacing.

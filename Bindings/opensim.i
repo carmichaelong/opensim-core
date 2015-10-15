@@ -94,6 +94,7 @@ namespace SimTK {
 
 %include <SWIGSimTK/DecorativeGeometry.h>
 
+%include <SWIGSimTK/PolygonalMesh.h>
 namespace SimTK {
 %template(ArrayDecorativeGeometry) SimTK::Array_<SimTK::DecorativeGeometry>;
 %template(SimTKArrayString) SimTK::Array_<std::string>;
@@ -187,9 +188,11 @@ namespace SimTK {
 %include <OpenSim/Common/MarkerFrame.h>
 %include <OpenSim/Common/MarkerData.h>
 
+
 // osimSimulation
 %include <OpenSim/Simulation/osimSimulationDLL.h>
 
+%typedef SimTK::DecorativeGeometry::Representation VisualRepresentation;
 %include <OpenSim/Simulation/Model/Appearance.h>
 %include <OpenSim/Simulation/Model/Geometry.h>
 %include <OpenSim/Simulation/Model/ModelComponent.h>

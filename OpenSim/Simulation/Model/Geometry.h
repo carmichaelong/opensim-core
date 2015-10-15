@@ -102,6 +102,7 @@ public:
     /** Return a reference to the actual Frame to which this Geometry
     is attached. */
     const Frame& getFrame() const;
+protected:
     //==========================================================================
     // METHODS
     //==========================================================================
@@ -120,11 +121,12 @@ public:
             decoration.setOpacity(get_Appearance().get_opacity());
             if (get_Appearance().get_visible())
                 decoration.setRepresentation(
-                    (VisualRepresentation)
+                    (OpenSim::VisualRepresentation)
                     get_Appearance().get_representation());
             else
                 decoration.setRepresentation(SimTK::DecorativeGeometry::Hide);
     };
+public:
     /// Convenient access to set Appearance/Color
     void setColor(const SimTK::Vec3& color) { 
         upd_Appearance().set_color(color); 
@@ -144,11 +146,11 @@ public:
     };
 
     /// Convenient access to set Appearance/representation
-    void setRepresentation(VisualRepresentation rep) { 
+    void setRepresentation(OpenSim::VisualRepresentation rep) { 
         upd_Appearance().set_representation(rep); 
     };
     /// Convenient access to get Appearance/representation
-    VisualRepresentation getRepresentation() { return
+    OpenSim::VisualRepresentation getRepresentation() { return
         get_Appearance().get_representation(); 
     };
 
