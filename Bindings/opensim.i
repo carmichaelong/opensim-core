@@ -28,10 +28,12 @@ namespace SimTK {
 %template(Vec6) Vec<6>;
 }
 
-// Mat33
+// Mat33, Mat44
 %include <SWIGSimTK/Mat.h>
 namespace SimTK {
 %template(Mat33) Mat<3, 3>;
+%template(Mat44) Mat<4, 4>;
+%template(Mat34) Mat<3, 4>;
 }
 %include <SWIGSimTK/CoordinateAxis.h>
 %include <SWIGSimTK/UnitVec.h>
