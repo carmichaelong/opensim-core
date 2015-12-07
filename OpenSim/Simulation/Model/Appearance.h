@@ -34,8 +34,9 @@ class Body;
 class Model;
 
 /**
-VisualRepresentation is the OpenSim name used across the OpenSim API, it maps to
-SimTK::DecorativeGeometry::Representation.
+VisualRepresentation is the OpenSim name used across the OpenSim API, it is an 
+that describes in what form is Geometry displayed:  
+DrawPoints, DrawWireframe, DrawSurface are supported.
 */
 #ifndef SWIG
 using VisualRepresentation = SimTK::DecorativeGeometry::Representation;
@@ -43,14 +44,14 @@ using VisualRepresentation = SimTK::DecorativeGeometry::Representation;
 typedef VisualRepresentation SimTK::DecorativeGeometry::Representation;
 #endif
 /**
-SurfaceAppearance class holds the appearance properties of a piece of Geometry 
+SurfaceProperties class holds the appearance properties of a piece of Geometry 
 displayed in the OpenSim visualizer or GUI as a surface. The properties in this 
 class are specific to geometry that have surfaces so that these surfaces can be 
 textured, or rendered using  a variety of shading models. 
 */
 
-class OSIMSIMULATION_API SurfaceAppearance : public Object {
-    OpenSim_DECLARE_CONCRETE_OBJECT(SurfaceAppearance, Object);
+class OSIMSIMULATION_API SurfaceProperties : public Object {
+    OpenSim_DECLARE_CONCRETE_OBJECT(SurfaceProperties, Object);
 public:
     //==========================================================================
     // PROPERTIES
@@ -58,33 +59,33 @@ public:
     OpenSim_DECLARE_PROPERTY(representation, int,
      "The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.");
     OpenSim_DECLARE_OPTIONAL_PROPERTY(texture_file, std::string,
-        "Name of file containing texture. ");
+        "Name of file containing texture.");
 
     //--------------------------------------------------------------------------
     // CONSTRUCTION
     //--------------------------------------------------------------------------
 public:
-    SurfaceAppearance() {
+    SurfaceProperties() {
         // Surface shaded by default
         constructProperty_representation(VisualRepresentation::DrawSurface);
     }
-    virtual ~SurfaceAppearance() {};
+    virtual ~SurfaceProperties() {};
 
     bool hasTexture() {
         return !getProperty_texture_file().empty();
     }
     //========================================================================
-};  // END of class SurfaceAppearance
+};  // END of class SurfaceProperties
 
 //=============================================================================
-/** CurveAppearance class holds the Appearance properties of Geometry
+/** CurveProperties class holds the Appearance properties of Geometry
 displayed in the OpenSim visualizer or GUI.The attributes in this
 class are specific to curves or line drawings so that thickness, line-style
 etc. can be maintained. 
 */
 //=============================================================================
-class OSIMSIMULATION_API CurveAppearance : public Object {
-    OpenSim_DECLARE_CONCRETE_OBJECT(CurveAppearance, Object);
+class OSIMSIMULATION_API CurveProperties : public Object {
+    OpenSim_DECLARE_CONCRETE_OBJECT(CurveProperties, Object);
 public:
     //=========================================================================
     // PROPERTIES
@@ -96,28 +97,28 @@ public:
     // CONSTRUCTION
     //--------------------------------------------------------------------------
 public:
-    CurveAppearance() {
+    CurveProperties() {
         constructProperties();
     }
-    virtual ~CurveAppearance() {};
+    virtual ~CurveProperties() {};
 
 private:
     void constructProperties() {
         constructProperty_thickness(1.0);
     }
     //=========================================================================
-};  // END of class CurveAppearance
+};  // END of class CurveProperties
 
 //=============================================================================
 //=============================================================================
 /**
- * A class that holds the Appearance properties of an object displayed 
- * in the OpenSim Visualizer.
+ * A class that holds the Appearance properties of Geometry displayed 
+ * in the OpenSim Visualizer. It affects how Geometry is displayed.
  * 
  * Appearance contains properties that apply to all geometry.
  * Geometry that have a surface so that it can be textured will utilize
- * SurfaceAppearance, while schematic line drawings (e.g. Arrows, Frames) 
- * can utilize CurveAppearance which offers thickness. 
+ * SurfaceProperties, while schematic line drawings (e.g. Arrows, Frames) 
+ * can utilize CurveProperties which offers thickness. 
  *
  * @author Ayman Habib
  */
@@ -131,14 +132,14 @@ public:
     OpenSim_DECLARE_PROPERTY(visible, bool, 
         "Flag indicating whether the associated Geometry is visible or hidden.")
     OpenSim_DECLARE_PROPERTY(opacity, double,
-            "The opacity (0-1) used to display the object. ");
+        "The opacity used to display the geometry between 0:transparent, 1:opaque.");
     OpenSim_DECLARE_PROPERTY(color, SimTK::Vec3,
-        "The color (rgb) used to display the object. ");
+        "The color, (red, green, blue), [0, 1], used to display the geometry. ");
 
-    OpenSim_DECLARE_PROPERTY(surface_appearance, SurfaceAppearance,
-        "Visuals applied to surfaces associated with this Appearance. ");
-    OpenSim_DECLARE_PROPERTY(curve_appearance, CurveAppearance,
-        "Visuals applied to curves or line drawings associated with this Appearance. ");
+    OpenSim_DECLARE_PROPERTY(surface_properties, SurfaceProperties,
+        "Visuals applied to surfaces associated with this Appearance.");
+    OpenSim_DECLARE_PROPERTY(curve_properties, CurveProperties,
+        "Visuals applied to curves or line drawings associated with this Appearance.");
 
 
     //--------------------------------------------------------------------------
@@ -151,10 +152,10 @@ public:
     virtual ~Appearance() {};
 
     OpenSim::VisualRepresentation get_representation() const { 
-        return (VisualRepresentation)get_surface_appearance().get_representation(); }
+        return (VisualRepresentation)get_surface_properties().get_representation(); }
 
     void set_representation(const VisualRepresentation& rep) { 
-        upd_surface_appearance().set_representation(rep); }
+        upd_surface_properties().set_representation(rep); }
 
 protected:
     /** Updating XML formating to latest revision */
@@ -162,7 +163,7 @@ protected:
         int documentVersion = versionNumber;
         if (documentVersion < XMLDocument::getLatestVersion()) {
             if (documentVersion < 30505) {
-                // if representation = 0 visible = false, else true
+                // if representation = 0 then  visible = false else  visible = true
                 SimTK::Xml::element_iterator iIter = 
                     aNode.element_begin("representation");
                 if (iIter != aNode.element_end()) {
@@ -184,8 +185,8 @@ private:
         constructProperty_opacity(1.0);
         // White by default, shows as a shade of gray
         constructProperty_color(SimTK::Vec3(1.0)); 
-        constructProperty_surface_appearance(SurfaceAppearance());
-        constructProperty_curve_appearance(CurveAppearance());
+        constructProperty_surface_properties(SurfaceProperties());
+        constructProperty_curve_properties(CurveProperties());
     }
     //=========================================================================
 };  // END of class Appearance

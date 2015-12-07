@@ -100,7 +100,7 @@ Building from the source code
 We support a few ways of building OpenSim:
 
 1. [On Windows using Microsoft Visual Studio](#on-windows-using-visual-studio).
-2. [On Mac using Xcode](#on-mac-using-xcode).
+2. [On Mac OSX using Xcode](#on-mac-osx-using-xcode).
 3. [On Ubuntu using Unix Makefiles](#on-ubuntu-using-unix-makefiles).
 
 
@@ -131,7 +131,7 @@ On Windows using Visual Studio
     * [TortoiseGit](https://code.google.com/p/tortoisegit/wiki/Download),
       intermediate; good for TortoiseSVN users;
     * [GitHub for Windows](https://windows.github.com/), easiest.
-* **Wrapping** (optional): [SWIG](http://www.swig.org/) 3.0.5
+* **Bindings** (optional): [SWIG](http://www.swig.org/) 3.0.5
     * **MATLAB scripting** (optional): [Java development kit][java] 1.7.
     * **python scripting** (optional):
         * [Enthought Canopy](https://www.enthought.com/products/canopy/), or
@@ -182,7 +182,8 @@ On Windows using Visual Studio
     * `BUILD_JAVA_WRAPPING` if you want to access OpenSim through MATLAB or
       Java; see dependencies above.
     * `BUILD_PYTHON_WRAPPING` if you want to access OpenSim through Python; see
-      dependencies above.
+      dependencies above. CMake sets `PYTHON_*` variables to tell you the
+      Python it will use for building the wrappers.
     * `BUILD_API_ONLY` if you don't want to build the command-line applications.
     * It is very important to use Java or Python environment binary format compatible with API build **(either all 32 or 64 bit)**.
 8. Click the **Configure** button again. Then, click **Generate** to make
@@ -228,12 +229,12 @@ directory to your `PATH` environment variable.
    the semicolon!
 
 
-On Mac using Xcode
-==================
+On Mac OSX using Xcode
+======================
 
 #### Get the dependencies
 
-* **operating system**: OS X 10.8 or later.
+* **operating system**: Mac OSX 10.8 or later.
 * **cross-platform build system**:
   [CMake](http://www.cmake.org/cmake/resources/software.html) >= 2.8.8
 * **compiler / IDE**: [Xcode](https://developer.apple.com/xcode/) >= 5, through
@@ -244,13 +245,18 @@ On Mac using Xcode
   [Doxygen](http://www.stack.nl/~dimitri/doxygen/download.html) >= 1.8.6
 * **version control** (optional): git.
     * Xcode Command Line Tools gives you git on the command line.
-    * [GitHub for Mac](https://mac.github.com), easiest.
-* **Wrapping** (optional): [SWIG](http://www.swig.org/) 3.0.5
+    * [GitHub for Mac](https://mac.github.com), for a simple-to-use GUI.
+* **Bindings** (optional): [SWIG](http://www.swig.org/) 3.0.5
     * **MATLAB scripting** (optional): [Java development kit][java] 1.7.
     * **python scripting** (optional):
-        * Mac's come with python, but you could also install:
+        * Mac OSX comes with python, but you could also use:
+        * [`brew install python`](http://brew.sh),
         * [Enthought Canopy](https://www.enthought.com/products/canopy/), or
         * [Anaconda](https://store.continuum.io/cshop/anaconda/)
+
+You can get most of these dependencies using [Homebrew](http://brew.sh):
+
+    $ brew install cmake doxygen swig
 
 #### Download the OpenSim-Core source code
 
@@ -291,7 +297,12 @@ On Mac using Xcode
     * `BUILD_JAVA_WRAPPING` if you want to access OpenSim through MATLAB or
       Java; see dependencies above.
     * `BUILD_PYTHON_WRAPPING` if you want to access OpenSim through Python; see
-      dependencies above.
+      dependencies above. CMake sets `PYTHON_*` variables to tell you the
+      Python it will use for building the wrappers. (If you installed python
+      with homebrew, [CMake will not find the homebrew python libraries on its
+      own](https://github.com/Homebrew/homebrew/issues/25118); you must set the
+      CMake variable `PYTHON_LIBRARIES` manually. Use `'$(python-config
+      --prefix)/lib/libpython2.7.dylib'` in bash to get the correct value.)
     * `BUILD_API_ONLY` if you don't want to build the command-line applications.
 8. Click the **Configure** button again. Then, click **Generate** to create
    Xcode project files in the build directory.
@@ -338,7 +349,7 @@ On Mac using Xcode
 2. **Libraries**. Hopefully you can skip this step. This step is required if:
   1. You are using CMake version 2.8.11 or older.
   2. You plan on building C++ executables or libraries on top of OpenSim, *and* you plan to "install" them in the CMake sense of the word (that is, you're not going to simply use them from your project's build directory).
-  3. You plan to use the Java or MATLAB wrapping.
+  3. You plan to use the Java or MATLAB scripting.
 
   If any of these are true, then you must add OpenSim-Core libraries to your linker path. Open a terminal and type:
 
@@ -369,7 +380,7 @@ line below, we show the corresponding package.
   [Doxygen](http://www.stack.nl/~dimitri/doxygen/download.html) >= 1.8.6;
   `doxygen`.
 * **version control** (optional): git; `git`.
-* **Wrapping** (optional): [SWIG](http://www.swig.org/) 3.0.5; must get from SWIG website.
+* **Bindings** (optional): [SWIG](http://www.swig.org/) 3.0.5; must get from SWIG website.
     * **MATLAB scripting** (optional): [Java development kit][java] >= 1.7;
       `openjdk-6-jdk` or `openjdk-7-jdk`.
     * **python scripting** (optional): `python-dev`.

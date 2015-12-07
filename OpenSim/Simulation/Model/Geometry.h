@@ -106,31 +106,15 @@ protected:
     //==========================================================================
     // METHODS
     //==========================================================================
-    /// Compute Transform of this geometry relative to its base frame, utilizing 
-    /// passed in state. Both transform and body_id are set in the passed-in 
-    /// decorations as a side effect.
-    void setDecorativeGeometryTransform(
-                        SimTK::Array_<SimTK::DecorativeGeometry>& decorations, 
-                        const SimTK::State& state) const;
-
-    /// Manage Appearance (how the Geometry is rendered) by applying Appearance 
-    /// from Geometry to DecorativeGeometry.
-    void setDecorativeGeometryAppearance(
-        SimTK::DecorativeGeometry& decoration) const {
-            decoration.setColor(get_Appearance().get_color());
-            decoration.setOpacity(get_Appearance().get_opacity());
-            if (get_Appearance().get_visible())
-                decoration.setRepresentation(
-                    (OpenSim::VisualRepresentation)
-                    get_Appearance().get_representation());
-            else
-                decoration.setRepresentation(SimTK::DecorativeGeometry::Hide);
-    };
+    // DEPRECATED: following methods are used by the GUI in version 3.3 and
+    // will be removed before release 4.0 in favor of a mechanism that 
+    // handles local/global/shared Appearance objects
 public:
     /// Convenient access to set Appearance/Color
     void setColor(const SimTK::Vec3& color) { 
         upd_Appearance().set_color(color); 
     };
+
     /// Convenient access to get Appearance/Color
     const SimTK::Vec3& getColor() const { 
         return get_Appearance().get_color(); 
@@ -153,13 +137,10 @@ public:
     OpenSim::VisualRepresentation getRepresentation() { return
         get_Appearance().get_representation(); 
     };
+    // END DEPRECATED
 
-    /// Map this Geometry into a list of primitives aka SimTK::DecorativeGeometry 
-    /// and return it in the passed in Array.
-    virtual void createDecorativeGeometry(
-        SimTK::Array_<SimTK::DecorativeGeometry>&) const {};
     /// Implement method from Component interface. Subclasses only need to 
-    /// implement createDecorativeGeometry to generate an Array of 
+    /// implement implementCreateDecorativeGeometry to generate an Array of 
     /// SimTK::DecorativeGeometry. From then on, setting Transforms & Appearance 
     /// is handled by the base class Geometry to avoid duplication. 
     void generateDecorations
@@ -169,10 +150,36 @@ public:
         SimTK::Array_<SimTK::DecorativeGeometry>&   appendToThis) const override final;
 
     /// Methods to support frame as a connection, implement Component interface
-    void constructConnectors();
+    void constructConnectors() override;
+
+protected:
+    /// Map this Geometry into a list of primitives aka SimTK::DecorativeGeometry 
+    /// and return the result in the passed in Array.
+    virtual void implementCreateDecorativeGeometry(
+        SimTK::Array_<SimTK::DecorativeGeometry>&) const = 0;
 
 private:
-    
+    // Compute Transform of this geometry relative to its base frame, utilizing 
+    // passed in state. Both transform and body_id are set in the passed-in 
+    // decorations as a side effect.
+    void setDecorativeGeometryTransform(
+        SimTK::Array_<SimTK::DecorativeGeometry>& decorations,
+        const SimTK::State& state) const;
+
+    // Manage Appearance (how the Geometry is rendered) by applying Appearance 
+    // from Geometry to DecorativeGeometry.
+    void setDecorativeGeometryAppearance(
+        SimTK::DecorativeGeometry& decoration) const {
+        decoration.setColor(get_Appearance().get_color());
+        decoration.setOpacity(get_Appearance().get_opacity());
+        if (get_Appearance().get_visible())
+            decoration.setRepresentation(
+                (VisualRepresentation)
+                get_Appearance().get_representation());
+        else
+            decoration.setRepresentation(SimTK::DecorativeGeometry::Hide);
+    };
+
     void setNull()
     {
         setAuthors("Ayman Habib");
@@ -223,10 +230,11 @@ public:
         upd_end_point() = aPoint2;
     }
 
+protected:
     /** Virtual method to map LineGeometry to SimTK::Array of
     SimTK::DecorativeGeometry.  Appearance, Transforms are handled by base
     Geometry class. */
-    void createDecorativeGeometry(
+    void implementCreateDecorativeGeometry(
         SimTK::Array_<SimTK::DecorativeGeometry>& decoGeoms) const override;
 private:
     void constructProperties(){
@@ -268,9 +276,10 @@ public:
     /// destructor
     virtual ~Arrow() {}
 
+protected:
     /** Virtual method to map Arrow to SimTK::Array of SimTK::DecorativeGeometry.
     Appearance, Transforms are handled by base Geometry class. */
-    void createDecorativeGeometry(
+    void implementCreateDecorativeGeometry(
         SimTK::Array_<SimTK::DecorativeGeometry>& decoGeoms) const override;
 private:
     void constructProperties(){
@@ -357,9 +366,10 @@ public:
     {
         upd_radius() = radius;
     }
+protected:
     /// Virtual method to map Sphere to Array of SimTK::DecorativeGeometry.
     /// Appearance, Transforms are handled by base Geometry class
-    void createDecorativeGeometry(
+    void implementCreateDecorativeGeometry(
         SimTK::Array_<SimTK::DecorativeGeometry>& decoGeoms) const override;
 private:
     void constructProperties(){
@@ -396,10 +406,11 @@ public:
         upd_radii()[1] = radius2;
         upd_radii()[2] = radius3;
     } 
+protected:
     /** Virtual method to map Ellipsoid to SimTK::Array_ of
     SimTK::DecorativeGeometry.  Appearance, Transforms are handled by base
     Geometry class. */
-    void createDecorativeGeometry(
+    void implementCreateDecorativeGeometry(
         SimTK::Array_<SimTK::DecorativeGeometry>& decoGeoms) const override;
 private:
     void constructProperties() {
@@ -442,9 +453,10 @@ public:
         params[0] = get_radius();
         params[1] = get_half_height();
     }
+protected:
     /** Virtual method to map Cylinder to SimTK::Array_ of SimTK::DecorativeGeometry.
     Appearance, Transforms are handled by base Geometry class. */
-    void createDecorativeGeometry(
+    void implementCreateDecorativeGeometry(
         SimTK::Array_<SimTK::DecorativeGeometry>& decoGeoms) const override;
 private:
     void constructProperties() {
@@ -486,9 +498,10 @@ public:
     }
     /// destructor
     ~Cone() {}
+protected:
     /** Method to map Cone to SimTK::Array of SimTK::DecorativeGeometry.
     Appearance, Transforms are handled by base Geometry class. */
-    void createDecorativeGeometry(
+    void implementCreateDecorativeGeometry(
         SimTK::Array_<SimTK::DecorativeGeometry>& decoGeoms) const override;
 private:
     void constructProperties() {
@@ -526,9 +539,10 @@ public:
     }
     virtual ~Torus() {}
 
+protected:
     /** Method to map Cone to Array of SimTK::DecorativeGeometry.
     Appearance, Transforms are handled by base Geometry class. */
-    void createDecorativeGeometry(
+    void implementCreateDecorativeGeometry(
         SimTK::Array_<SimTK::DecorativeGeometry>& decoGeoms) const override {};
 };
 
@@ -558,8 +572,9 @@ public:
     }
     /// Destructor
     ~Brick() {}
+protected:
     /// Method to map Brick to Array of SimTK::DecorativeGeometry.
-    void createDecorativeGeometry(
+    void implementCreateDecorativeGeometry(
         SimTK::Array_<SimTK::DecorativeGeometry>& decoGeoms) const override;
 
 };
@@ -595,8 +610,9 @@ public:
     {
         return get_mesh_file();
     };
+protected:
     /// Method to map Mesh to Array of SimTK::DecorativeGeometry.
-    void createDecorativeGeometry(
+    void implementCreateDecorativeGeometry(
         SimTK::Array_<SimTK::DecorativeGeometry>& decoGeoms) const override;
 
 };
@@ -620,8 +636,9 @@ public:
     }
     /// destructor
     virtual ~FrameGeometry() {};
+protected:
     /// Method to map FrameGeometry to Array of SimTK::DecorativeGeometry.
-    void createDecorativeGeometry(
+    void implementCreateDecorativeGeometry(
         SimTK::Array_<SimTK::DecorativeGeometry>& decoGeoms) const override;
 private:
     void constructInfrastructure() {
